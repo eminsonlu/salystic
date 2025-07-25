@@ -52,13 +52,19 @@ func SetupRoutes(e *echo.Echo, db *database.MongoDB, authService service.AuthSer
 	entriesGroup.GET("/:id/raises", salaryHandler.GetRaises)
 
 	constantsGroup := api.Group("/constants")
-	constantsGroup.GET("/jobs", constantsHandler.GetJobs)
-	constantsGroup.GET("/titles", constantsHandler.GetTitles)
-	constantsGroup.GET("/sectors", constantsHandler.GetSectors)
-	constantsGroup.GET("/countries", constantsHandler.GetCountries)
+	constantsGroup.GET("/positions", constantsHandler.GetPositions)
+	constantsGroup.GET("/levels", constantsHandler.GetLevels)
+	constantsGroup.GET("/tech-stacks", constantsHandler.GetTechStacks)
+	constantsGroup.GET("/experiences", constantsHandler.GetExperiences)
+	constantsGroup.GET("/companies", constantsHandler.GetCompanies)
+	constantsGroup.GET("/company-sizes", constantsHandler.GetCompanySizes)
+	constantsGroup.GET("/work-types", constantsHandler.GetWorkTypes)
+	constantsGroup.GET("/cities", constantsHandler.GetCities)
 	constantsGroup.GET("/currencies", constantsHandler.GetCurrencies)
 
 	analyticsGroup := api.Group("/analytics")
 	analyticsGroup.GET("", analyticsHandler.GetGeneralAnalytics)
 	analyticsGroup.GET("/career", analyticsHandler.GetCareerAnalytics)
+	analyticsGroup.GET("/positions", analyticsHandler.GetAvailablePositions)
+	analyticsGroup.GET("/levels", analyticsHandler.GetAvailableLevels)
 }

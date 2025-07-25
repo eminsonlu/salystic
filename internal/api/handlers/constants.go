@@ -17,40 +17,76 @@ func NewConstantsHandler(constantsRepo repo.ConstantsRepository) *ConstantsHandl
 	}
 }
 
-func (h *ConstantsHandler) GetJobs(c echo.Context) error {
-	jobs, err := h.constantsRepo.GetJobs(c.Request().Context())
+func (h *ConstantsHandler) GetPositions(c echo.Context) error {
+	positions, err := h.constantsRepo.GetPositions(c.Request().Context())
 	if err != nil {
-		return responses.InternalServerError(c, "Failed to get jobs")
+		return responses.InternalServerError(c, "Failed to get positions")
 	}
 
-	return responses.Success(c, jobs)
+	return responses.Success(c, positions)
 }
 
-func (h *ConstantsHandler) GetTitles(c echo.Context) error {
-	titles, err := h.constantsRepo.GetTitles(c.Request().Context())
+func (h *ConstantsHandler) GetLevels(c echo.Context) error {
+	levels, err := h.constantsRepo.GetLevels(c.Request().Context())
 	if err != nil {
-		return responses.InternalServerError(c, "Failed to get titles")
+		return responses.InternalServerError(c, "Failed to get levels")
 	}
 
-	return responses.Success(c, titles)
+	return responses.Success(c, levels)
 }
 
-func (h *ConstantsHandler) GetSectors(c echo.Context) error {
-	sectors, err := h.constantsRepo.GetSectors(c.Request().Context())
+func (h *ConstantsHandler) GetTechStacks(c echo.Context) error {
+	techStacks, err := h.constantsRepo.GetTechStacks(c.Request().Context())
 	if err != nil {
-		return responses.InternalServerError(c, "Failed to get sectors")
+		return responses.InternalServerError(c, "Failed to get tech stacks")
 	}
 
-	return responses.Success(c, sectors)
+	return responses.Success(c, techStacks)
 }
 
-func (h *ConstantsHandler) GetCountries(c echo.Context) error {
-	countries, err := h.constantsRepo.GetCountries(c.Request().Context())
+func (h *ConstantsHandler) GetExperiences(c echo.Context) error {
+	experiences, err := h.constantsRepo.GetExperiences(c.Request().Context())
 	if err != nil {
-		return responses.InternalServerError(c, "Failed to get countries")
+		return responses.InternalServerError(c, "Failed to get experiences")
 	}
 
-	return responses.Success(c, countries)
+	return responses.Success(c, experiences)
+}
+
+func (h *ConstantsHandler) GetCompanies(c echo.Context) error {
+	companies, err := h.constantsRepo.GetCompanies(c.Request().Context())
+	if err != nil {
+		return responses.InternalServerError(c, "Failed to get companies")
+	}
+
+	return responses.Success(c, companies)
+}
+
+func (h *ConstantsHandler) GetCompanySizes(c echo.Context) error {
+	companySizes, err := h.constantsRepo.GetCompanySizes(c.Request().Context())
+	if err != nil {
+		return responses.InternalServerError(c, "Failed to get company sizes")
+	}
+
+	return responses.Success(c, companySizes)
+}
+
+func (h *ConstantsHandler) GetWorkTypes(c echo.Context) error {
+	workTypes, err := h.constantsRepo.GetWorkTypes(c.Request().Context())
+	if err != nil {
+		return responses.InternalServerError(c, "Failed to get work types")
+	}
+
+	return responses.Success(c, workTypes)
+}
+
+func (h *ConstantsHandler) GetCities(c echo.Context) error {
+	cities, err := h.constantsRepo.GetCities(c.Request().Context())
+	if err != nil {
+		return responses.InternalServerError(c, "Failed to get cities")
+	}
+
+	return responses.Success(c, cities)
 }
 
 func (h *ConstantsHandler) GetCurrencies(c echo.Context) error {

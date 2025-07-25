@@ -96,27 +96,42 @@ func TestCreateEntry_Success(t *testing.T) {
 
 	userID := primitive.NewObjectID().Hex()
 	now := time.Now()
-	
+
 	reqBody := model.CreateSalaryEntryRequest{
-		Country:   "US",
-		Currency:  "USD",
-		Sector:    "Technology",
-		Job:       "Backend Developer",
-		Title:     "Senior",
-		Salary:    150000,
-		StartTime: now,
+		Level:       "Senior",
+		Position:    "Backend Developer",
+		TechStack:   []string{"Go", "MongoDB"},
+		Experience:  "5 - 7 Yıl",
+		Gender:      "Erkek",
+		Company:     "Technology",
+		CompanySize: "101 - 249 Kişi",
+		WorkType:    "Remote",
+		City:        "İstanbul",
+		Currency:    "USD",
+		SalaryMin:   150000,
+		RaisePeriod: 1,
+		StartTime:   now,
 	}
 
 	expectedEntry := &model.SalaryEntry{
-		ID:        primitive.NewObjectID(),
-		Country:   "US",
-		Currency:  "USD",
-		Sector:    "Technology",
-		Job:       "Backend Developer",
-		Title:     "Senior",
-		Salary:    150000,
-		StartTime: now,
-		CreatedAt: now,
+		ID:          primitive.NewObjectID(),
+		Level:       "Senior",
+		Position:    "Backend Developer",
+		TechStack:   []string{"Go", "MongoDB"},
+		Experience:  "5 - 7 Yıl",
+		Gender:      "Erkek",
+		Company:     "Technology",
+		CompanySize: "101 - 249 Kişi",
+		WorkType:    "Remote",
+		City:        "İstanbul",
+		Currency:    "USD",
+		SalaryRange: "150.000 - 150.999",
+		SalaryMin:   150000,
+		SalaryMax:   nil,
+		RaisePeriod: 1,
+		StartTime:   now,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}
 
 	mockService.On("CreateEntry", mock.Anything, userID, mock.AnythingOfType("*model.CreateSalaryEntryRequest")).Return(expectedEntry, nil)
@@ -147,15 +162,24 @@ func TestGetUserEntries_Success(t *testing.T) {
 	handler := NewSalaryHandler(mockService)
 
 	userID := primitive.NewObjectID().Hex()
+	salaryMax := int64(150999)
 	entries := []*model.SalaryEntry{
 		{
-			ID:       primitive.NewObjectID(),
-			Country:  "US",
-			Currency: "USD",
-			Sector:   "Technology",
-			Job:      "Backend Developer",
-			Title:    "Senior",
-			Salary:   150000,
+			ID:          primitive.NewObjectID(),
+			Level:       "Senior",
+			Position:    "Backend Developer",
+			TechStack:   []string{"Go", "MongoDB"},
+			Experience:  "5 - 7 Yıl",
+			Gender:      "Erkek",
+			Company:     "Technology",
+			CompanySize: "101 - 249 Kişi",
+			WorkType:    "Remote",
+			City:        "İstanbul",
+			Currency:    "USD",
+			SalaryRange: "150.000 - 150.999",
+			SalaryMin:   150000,
+			SalaryMax:   &salaryMax,
+			RaisePeriod: 1,
 		},
 	}
 

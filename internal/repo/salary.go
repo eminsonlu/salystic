@@ -84,32 +84,50 @@ func (r *salaryEntryRepository) Update(ctx context.Context, id primitive.ObjectI
 	updateDoc := bson.M{"$set": bson.M{"updated_at": time.Now()}}
 	setDoc := updateDoc["$set"].(bson.M)
 	
-	if update.Country != nil {
-		setDoc["country"] = *update.Country
+	if update.Level != nil {
+		setDoc["level"] = *update.Level
+	}
+	if update.Position != nil {
+		setDoc["position"] = *update.Position
+	}
+	if update.TechStack != nil {
+		setDoc["tech_stack"] = update.TechStack
+	}
+	if update.Experience != nil {
+		setDoc["experience"] = *update.Experience
+	}
+	if update.Gender != nil {
+		setDoc["gender"] = *update.Gender
+	}
+	if update.Company != nil {
+		setDoc["company"] = *update.Company
+	}
+	if update.CompanySize != nil {
+		setDoc["company_size"] = *update.CompanySize
+	}
+	if update.WorkType != nil {
+		setDoc["work_type"] = *update.WorkType
+	}
+	if update.City != nil {
+		setDoc["city"] = *update.City
 	}
 	if update.Currency != nil {
 		setDoc["currency"] = *update.Currency
 	}
-	if update.Sector != nil {
-		setDoc["sector"] = *update.Sector
+	if update.SalaryMin != nil {
+		setDoc["salary_min"] = *update.SalaryMin
 	}
-	if update.Job != nil {
-		setDoc["job"] = *update.Job
+	if update.SalaryMax != nil {
+		setDoc["salary_max"] = *update.SalaryMax
 	}
-	if update.Title != nil {
-		setDoc["title"] = *update.Title
-	}
-	if update.Salary != nil {
-		setDoc["salary"] = *update.Salary
+	if update.RaisePeriod != nil {
+		setDoc["raise_period"] = *update.RaisePeriod
 	}
 	if update.StartTime != nil {
 		setDoc["start_time"] = *update.StartTime
 	}
 	if update.EndTime != nil {
 		setDoc["end_time"] = *update.EndTime
-	}
-	if update.PreviousJobSalary != nil {
-		setDoc["previous_job_salary"] = *update.PreviousJobSalary
 	}
 
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)

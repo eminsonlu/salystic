@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"github.com/labstack/echo/v4"
 	"github.com/eminsonlu/salystic/internal/service"
 	"github.com/eminsonlu/salystic/pkg/responses"
+	"github.com/labstack/echo/v4"
 )
 
 type AnalyticsHandler struct {
@@ -17,11 +17,18 @@ func NewAnalyticsHandler(analyticsService *service.AnalyticsService) *AnalyticsH
 }
 
 func (h *AnalyticsHandler) GetGeneralAnalytics(c echo.Context) error {
-	analytics, err := h.analyticsService.GetGeneralAnalytics(c.Request().Context())
+	level := c.QueryParam("level")
+	position := c.QueryParam("position")
+	currency := c.QueryParam("currency")
+	if currency == "" {
+		currency = "TRY"
+	}
+
+	analytics, err := h.analyticsService.GetGeneralAnalytics(c.Request().Context(), level, position, currency)
 	if err != nil {
 		return responses.InternalServerError(c, "Failed to get analytics")
 	}
-	
+
 	return responses.Success(c, analytics)
 }
 
@@ -30,6 +37,24 @@ func (h *AnalyticsHandler) GetCareerAnalytics(c echo.Context) error {
 	if err != nil {
 		return responses.InternalServerError(c, "Failed to get career analytics")
 	}
-	
+
 	return responses.Success(c, analytics)
+}
+
+func (h *AnalyticsHandler) GetAvailablePositions(c echo.Context) error {
+	positions, err := h.analyticsService.GetAvailablePositions(c.Request().Context())
+	if err != nil {
+		return responses.InternalServerError(c, "Failed to get available positions")
+	}
+
+	return responses.Success(c, positions)
+}
+
+func (h *AnalyticsHandler) GetAvailableLevels(c echo.Context) error {
+	levels, err := h.analyticsService.GetAvailableLevels(c.Request().Context())
+	if err != nil {
+		return responses.InternalServerError(c, "Failed to get available levels")
+	}
+
+	return responses.Success(c, levels)
 }

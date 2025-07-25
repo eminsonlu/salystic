@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+
 	"github.com/eminsonlu/salystic/internal/api/routes"
 	"github.com/eminsonlu/salystic/internal/auth"
 	"github.com/eminsonlu/salystic/internal/config"

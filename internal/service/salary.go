@@ -3,6 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/eminsonlu/salystic/internal/model"
 	"github.com/eminsonlu/salystic/internal/repo"
 
@@ -35,18 +38,32 @@ func (s *salaryEntryService) CreateEntry(ctx context.Context, userID string, req
 		return nil, fmt.Errorf("invalid user ID: %w", err)
 	}
 
+	var salaryRange string
+	if req.SalaryMax != nil {
+		salaryRange = fmt.Sprintf("%d - %d", req.SalaryMin, *req.SalaryMax)
+	} else {
+		salaryRange = fmt.Sprintf("%d+", req.SalaryMin)
+	}
+
 	entry := &model.SalaryEntry{
-		UserID:            userObjID,
-		Country:           req.Country,
-		Currency:          req.Currency,
-		Sector:            req.Sector,
-		Job:               req.Job,
-		Title:             req.Title,
-		Salary:            req.Salary,
-		StartTime:         req.StartTime,
-		EndTime:           req.EndTime,
-		PreviousJobSalary: req.PreviousJobSalary,
-		Raises:            []model.Raise{},
+		UserID:      userObjID,
+		Level:       req.Level,
+		Position:    req.Position,
+		TechStack:   req.TechStack,
+		Experience:  req.Experience,
+		Gender:      req.Gender,
+		Company:     req.Company,
+		CompanySize: req.CompanySize,
+		WorkType:    req.WorkType,
+		City:        req.City,
+		Currency:    req.Currency,
+		SalaryRange: salaryRange,
+		SalaryMin:   req.SalaryMin,
+		SalaryMax:   req.SalaryMax,
+		RaisePeriod: req.RaisePeriod,
+		StartTime:   req.StartTime,
+		EndTime:     req.EndTime,
+		Raises:      []model.Raise{},
 	}
 
 	if err := s.salaryRepo.Create(ctx, entry); err != nil {
@@ -175,4 +192,40 @@ func (s *salaryEntryService) GetRaises(ctx context.Context, userID, entryID stri
 	}
 
 	return raises, nil
+}
+
+func parseSalaryRange(salaryRange string) (int64, *int64) {
+	salaryRange = strings.TrimSpace(salaryRange)
+	if salaryRange == "" {
+		return 0, nil
+	}
+
+	cleaned := strings.ReplaceAll(salaryRange, ".", "")
+
+	if strings.HasSuffix(cleaned, "+") {
+		numStr := strings.TrimSuffix(cleaned, "+")
+		if min, err := strconv.ParseInt(strings.TrimSpace(numStr), 10, 64); err == nil {
+			return min, nil
+		}
+		return 0, nil
+	}
+
+	parts := strings.Split(cleaned, "-")
+	if len(parts) == 2 {
+		minStr := strings.TrimSpace(parts[0])
+		maxStr := strings.TrimSpace(parts[1])
+
+		min, err1 := strconv.ParseInt(minStr, 10, 64)
+		max, err2 := strconv.ParseInt(maxStr, 10, 64)
+		if err1 == nil && err2 == nil {
+			return min, &max
+		}
+		return 0, nil
+	}
+
+	if val, err := strconv.ParseInt(cleaned, 10, 64); err == nil {
+		return val, &val
+	}
+
+	return 0, nil
 }
