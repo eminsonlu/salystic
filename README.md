@@ -10,11 +10,13 @@ A minimal salary benchmarking backend called Salystic for software engineers bui
   * JWT-based session management
   * LinkedIn OAuth2 login
 
-* **Salary Entries**
-  * Submit salary entries with required fields:
-    * `country`, `currency`, `sector`, `job`, `title`, `salary`, `startTime`, `endTime`
+* **Salary Entries Management**
+  * Submit comprehensive salary entries with validation
+  * Required fields: `position`, `level`, `experience`, `company`, `city`, `salary`, `currency`, `techStacks`, `companySize`, `workType`
+  * Career progression tracking with raise history
+  * Private user access to own entries only
 
-* **Career Progression Tracking** 🆕
+* **Career Progression Tracking**
   * **Job Change Analysis**
     * Track salary differences between job changes
     * Identify if salary increase was the motivation for job switch
@@ -25,20 +27,32 @@ A minimal salary benchmarking backend called Salystic for software engineers bui
     * Calculate annual raise frequency and percentages
     * Monitor salary growth patterns over time
 
-* **Data Privacy**
-  * Only LinkedIn subject identifier (sub) stored in database (pseudonymized with HMAC-SHA256)
-  * Profile data (name, email, picture) received from LinkedIn OAuth but only sent to frontend for display
-  * No personal information permanently stored in database
-  * Anonymous data aggregation
+* **Comprehensive Analytics Dashboard**
+  * **Public Analytics** - Transparent salary insights for community benefit
+  * Multi-dimensional salary breakdowns by:
+    * Position, Level, Experience, Company, City
+    * Technology Stack, Company Size, Work Type, Currency
+  * Statistical insights: Average, Min, Max salaries with entry counts
+  * Top-paying positions and technologies charts
+  * Salary range distributions
+  * Career progression analytics (raises, job changes)
+  * Query filtering by position, level, and currency
+  * Real-time data updates
 
-* **Constants Seeding**
-  * Migration on startup seeds jobs, titles, sectors, countries, and currencies if not present
+* **Advanced Security & Privacy**
+  * **Viper Configuration Management** - Centralized config with environment variable binding
+  * **Custom CORS Policy** - Public access for analytics, restricted access for private APIs
+  * **Data Privacy Protection**
+    * Only LinkedIn subject identifier (sub) stored in database (pseudonymized with HMAC-SHA256)
+    * Profile data (name, email, picture) received from LinkedIn OAuth but only sent to frontend for display
+    * No personal information permanently stored in database
+    * Anonymous data aggregation with minimum thresholds
 
-* **Analytics**
-  * View total entries count (public access)
-  * View average salary by job and sector (public access)
-  * Career progression insights (avg raises per year, job change patterns) 🆕
-  * All analytics show aggregated, anonymous data only
+* **Constants & Data Management**
+  * Automatic seeding of positions, levels, tech stacks, experiences, companies, cities, etc.
+  * 400+ predefined constants for consistent data entry
+  * Multi-language support (Turkish cities and companies)
+  * Data import capabilities via JSON files
 
 ## 🧰 Implementation Principles
 
@@ -75,28 +89,35 @@ Salystic follows these core backend principles:
 ### Security Considerations
 ⚠️ **Important**: Analytics endpoints are currently public.
 
-### Recommended Security Enhancements
+### Implemented Security Features
 ```go
-// Add rate limiting middleware
-rateLimiter := middleware.NewRateLimiter(
-    100,    // requests
-    "1h",   // per hour
-)
-e.GET("/api/v1/analytics", handler.GetAnalytics, rateLimiter)
+// Custom CORS Policy - Different rules for public vs private APIs
+func CORSWithConfig(frontendURL string) echo.MiddlewareFunc {
+    // Public analytics APIs - allow all origins
+    if strings.HasPrefix(path, "/api/v1/analytics") ||
+       strings.HasPrefix(path, "/api/v1/constants") {
+        corsConfig := middleware.CORSConfig{
+            AllowOrigins: []string{"*"},
+            AllowMethods: []string{"GET", "OPTIONS"},
+        }
+    }
+    // Private APIs - restrict to frontend domain
+    corsConfig := middleware.CORSConfig{
+        AllowOrigins: []string{frontendURL},
+        AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowCredentials: true,
+    }
+}
 
-// Add cache headers for public endpoints
-e.Use(middleware.CacheControl(300)) // 5 minutes
-
-// CORS configuration
-e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-    AllowOrigins: []string{"https://yourdomain.com"},
-    AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE},
-}))
+// Viper Configuration Management
+viper.AutomaticEnv()
+viper.SetDefault("SERVER_PORT", "8080")
+viper.BindEnv("server.port", "PORT")
 ```
 
 ## 📦 Prerequisites
 
-* Go 1.20+
+* Go 1.23+
 * MongoDB 4.4+
 * LinkedIn OAuth2 application credentials
 
@@ -110,18 +131,28 @@ e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 2. Update environment variables in `.env`:
 
    ```dotenv
+    # Server Configuration
     PORT=8080
+
+    # Database Configuration
     MONGO_URI=mongodb://localhost:27017
     MONGO_DB=salarydb
     MONGO_USER=admin
     MONGO_PASS=admin
+
+    # JWT Configuration
     JWT_SECRET=your_jwt_secret_here_change_this
     JWT_EXPIRY=24h
+
+    # LinkedIn OAuth Configuration
     LINKEDIN_CLIENT_ID=your_linkedin_client_id
     LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
-    HMAC_SECRET=your_hmac_secret_here_change_this
     LINKEDIN_REDIRECT_URL=http://localhost:8080/auth/linkedin/callback
     FRONTEND_CALLBACK_URL=http://localhost:3000/auth/callback
+
+    # Security & CORS
+    HMAC_SECRET=your_hmac_secret_here_change_this
+    FRONTEND_URL=http://localhost:3000
    ```
 
 ## 🏃 Running Locally
@@ -143,18 +174,24 @@ After starting the server, verify security settings:
 
 ```
 salystic-backend/
-├── cmd/server          # Application entrypoint
-├── internal
-│   ├── api             # HTTP handlers
-│   ├── auth            # Auth logic & middleware
-│   ├── model           # Data models
-│   ├── repo            # Repository implementations
-│   └── service         # Business logic
-│       ├── salary      # Salary entry management
-│       └── career      # Career progression tracking 🆕
-├── config              # Configuration loader
-├── pkg                 # Utilities
-├── .env.example
+├── cmd/
+│   ├── server/         # Main application entrypoint
+│   └── import/         # Data import utility
+├── internal/
+│   ├── api/
+│   │   ├── handlers/   # HTTP request handlers
+│   │   ├── middleware/ # Custom middleware (auth, CORS)
+│   │   └── routes/     # Route definitions
+│   ├── auth/          # JWT and LinkedIn OAuth logic
+│   ├── config/        # Viper configuration management
+│   ├── model/         # Data models and structures
+│   ├── repo/          # Repository implementations
+│   └── service/       # Business logic layer
+├── pkg/
+│   ├── database/      # MongoDB connection utilities
+│   └── responses/     # Standardized API responses
+├── .env.example       # Environment configuration template
+├── Dockerfile         # Container configuration
 ├── go.mod
 └── README.md
 ```
@@ -193,24 +230,45 @@ salystic-backend/
 
 | Method | Path                        | Auth Required | Description                          |
 | ------ | --------------------------- | ------------- | ------------------------------------ |
-| GET    | `/api/v1/analytics`         | No            | Total entries & averages             |
-| GET    | `/api/v1/analytics/career`  | No            | Career progression insights 🆕       |
+| GET    | `/api/v1/analytics`         | No            | Comprehensive salary analytics       |
+| GET    | `/api/v1/analytics/career`  | No            | Career progression insights          |
+| GET    | `/api/v1/analytics/positions` | No          | Available positions list             |
+| GET    | `/api/v1/analytics/levels`  | No            | Available levels list                |
+
+### Constants (Public)
+
+| Method | Path                        | Auth Required | Description                          |
+| ------ | --------------------------- | ------------- | ------------------------------------ |
+| GET    | `/api/v1/constants/positions` | No          | All position options                 |
+| GET    | `/api/v1/constants/levels`  | No            | All level options                    |
+| GET    | `/api/v1/constants/tech-stacks` | No        | All technology stack options         |
+| GET    | `/api/v1/constants/experiences` | No        | All experience range options         |
+| GET    | `/api/v1/constants/companies` | No          | All company/sector options           |
+| GET    | `/api/v1/constants/company-sizes` | No      | All company size options             |
+| GET    | `/api/v1/constants/work-types` | No        | All work type options                |
+| GET    | `/api/v1/constants/cities`  | No            | All city options                     |
+| GET    | `/api/v1/constants/currencies` | No        | All currency options                 |
 
 ## 📝 Request/Response Examples
 
-### Submit Salary Entry with Previous Job Info
+### Submit Salary Entry
 ```json
 POST /api/v1/entries
 {
-  "country": "US",
-  "currency": "USD",
-  "sector": "Technology",
-  "job": "Backend Developer",
-  "title": "Senior",
+  "position": "Back-end Developer",
+  "level": "Senior",
+  "experience": "5 - 7 Yıl",
+  "company": "Yazılım Evi & Danışmanlık",
+  "companySize": "51 - 100 Kişi",
+  "city": "İstanbul",
+  "workType": "Remote",
+  "techStacks": ["Go", "NodeJS", "React"],
   "salary": 150000,
+  "currency": "TRY",
   "startTime": "2024-01-01T00:00:00Z",
   "endTime": null,
-  "previousJobSalary": 120000  // Optional: for job change tracking
+  "salaryMin": 120000,  // Optional: previous job salary for tracking
+  "salaryMax": 180000   // Optional: current job salary range
 }
 ```
 
@@ -226,22 +284,46 @@ POST /api/v1/entries/:id/raises
 
 ### Analytics Response (Public)
 ```json
-GET /api/v1/analytics
+GET /api/v1/analytics?position=Back-end Developer&level=Senior&currency=TRY
 
 {
   "totalEntries": 1543,
-  "averageSalaryByJob": {
-    "Backend Developer": {
-      "Junior": 75000,
-      "Mid": 95000,
-      "Senior": 135000
-    }
+  "averageSalary": 142500,
+  "averageSalaryByPosition": {
+    "Back-end Developer": 135000,
+    "Front-end Developer": 125000,
+    "Full Stack Developer": 140000
   },
-  "averageSalaryBySector": {
-    "Technology": 115000,
-    "Finance": 125000,
-    "Healthcare": 95000
+  "minSalaryByPosition": {
+    "Back-end Developer": 85000,
+    "Front-end Developer": 75000
   },
+  "maxSalaryByPosition": {
+    "Back-end Developer": 200000,
+    "Front-end Developer": 180000
+  },
+  "averageSalaryByLevel": {
+    "Junior": 75000,
+    "Middle": 115000,
+    "Senior": 155000
+  },
+  "averageSalaryByTech": {
+    "Go": 165000,
+    "React": 145000,
+    "NodeJS": 140000
+  },
+  "topPayingPositions": [
+    {"name": "AI Engineer", "value": 180000, "count": 45},
+    {"name": "DevOps Engineer", "value": 170000, "count": 78}
+  ],
+  "topPayingTechs": [
+    {"name": "Go", "value": 165000, "count": 234},
+    {"name": "Rust", "value": 160000, "count": 67}
+  ],
+  "salaryRanges": [
+    {"name": "50k-75k", "value": 50000, "count": 156},
+    {"name": "75k-100k", "value": 75000, "count": 289}
+  ],
   "lastUpdated": "2024-01-15T10:30:00Z"
 }
 ```
