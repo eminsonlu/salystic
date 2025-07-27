@@ -6,14 +6,17 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/import
+RUN CGO_ENABLED=0 GOOS=linux go build -o import ./cmd/import
 
 # Production stage
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
-WORKDIR /root/
+WORKDIR /app
 
-COPY --from=builder /app/main .
+COPY --from=builder /app/import .
 
-EXPOSE 8080
-CMD ["./main"]
+ENV DATA_FILE=data.json
+
+VOLUME ["/app/data"]
+
+CMD ["sh", "-c", "./import ${DATA_FILE}"]
