@@ -142,6 +142,7 @@ func (r *constantsRepository) seedPositions(ctx context.Context) error {
 		model.Position{Name: "Mobile Application Developer (Full Stack & Cross)", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 		model.Position{Name: "Mobile Application Developer (iOS)", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 		model.Position{Name: "Network Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		model.Position{Name: "Playable Ads Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 		model.Position{Name: "No-Code Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 		model.Position{Name: "Platform Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 		model.Position{Name: "Product Manager", CreatedAt: time.Now(), UpdatedAt: time.Now()},
