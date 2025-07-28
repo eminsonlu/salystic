@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+
 	"github.com/eminsonlu/salystic/internal/model"
 	"github.com/eminsonlu/salystic/internal/service"
 	"github.com/eminsonlu/salystic/pkg/responses"

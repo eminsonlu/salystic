@@ -69,6 +69,7 @@ type UpdateSalaryEntryRequest struct {
 	Currency    *string    `json:"currency,omitempty"`
 	SalaryMin   *int64     `json:"salary_min,omitempty"`
 	SalaryMax   *int64     `json:"salary_max,omitempty"`
+	SalaryRange *string    `json:"salary_range,omitempty"`
 	RaisePeriod *int       `json:"raise_period,omitempty"`
 	StartTime   *time.Time `json:"start_time,omitempty"`
 	EndTime     *time.Time `json:"end_time,omitempty"`
