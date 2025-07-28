@@ -11,6 +11,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type ConstantsRepository interface {
@@ -98,530 +99,639 @@ func (r *constantsRepository) SeedConstants(ctx context.Context) error {
 }
 
 func (r *constantsRepository) seedPositions(ctx context.Context) error {
-	count, err := r.positions.CountDocuments(ctx, bson.M{})
-	if err != nil {
-		return err
-	}
-	if count > 0 {
-		log.Println("Positions already seeded, skipping...")
-		return nil
-	}
-
-	positions := []interface{}{
-		model.Position{Name: "AI Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Agile Coach", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Back-end Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Blockchain Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Business Analyst", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Business Intelligence", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "CTO", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Chief Data Officer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Cloud Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Computer Vision Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Consultant", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Cyber Security", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Data Analyst", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Data Architect", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Data Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Data Scientist", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Database Administrator (DBA)", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "DevOps Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Digital Transformation Executive", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Director of Software Development", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "ERP Developer & Consultant", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Embedded Software Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Front-end Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Full Stack Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Game Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "HR", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "IT", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "IT Manager", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Lead Product", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Machine Learning Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Mobile Application Developer (Android)", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Mobile Application Developer (Full Stack & Cross)", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Mobile Application Developer (iOS)", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Network Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Playable Ads Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "No-Code Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Platform Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Product Manager", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Product Owner", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Program Manager", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Project Manager", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "QA / Automation", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "QA / Manuel Test", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "QA Manager", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "R&D Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "R&D Manager", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "RPA Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Robotic Software Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "SAP / ABAP Developer & Consultant", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Site Reliability Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Software Architect", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Software Development Manager / Engineering Manager", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Software Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Solution Architect", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Solution Developer & Architect", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Support Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "System Admin", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "System Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "Team / Tech Lead", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Position{Name: "UI/UX Designer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+	positions := []model.Position{
+		{Name: "AI Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Agile Coach", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Back-end Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Blockchain Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Business Analyst", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Business Intelligence", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "CTO", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Chief Data Officer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Cloud Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Computer Vision Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Consultant", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Cyber Security", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Data Analyst", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Data Architect", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Data Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Data Scientist", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Database Administrator (DBA)", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "DevOps Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Digital Transformation Executive", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Director of Software Development", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "ERP Developer & Consultant", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Embedded Software Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Front-end Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Full Stack Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Game Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "HR", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "IT", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "IT Manager", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Lead Product", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Machine Learning Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Mobile Application Developer (Android)", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Mobile Application Developer (Full Stack & Cross)", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Mobile Application Developer (iOS)", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Network Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Playable Ads Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "No-Code Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Platform Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Product Manager", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Product Owner", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Program Manager", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Project Manager", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "QA / Automation", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "QA / Manuel Test", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "QA Manager", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "R&D Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "R&D Manager", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "RPA Developer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Robotic Software Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "SAP / ABAP Developer & Consultant", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Site Reliability Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Software Architect", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Software Development Manager / Engineering Manager", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Software Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Solution Architect", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Solution Developer & Architect", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Support Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "System Admin", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "System Engineer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Team / Tech Lead", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "UI/UX Designer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 	}
 
-	_, err = r.positions.InsertMany(ctx, positions)
-	if err != nil {
-		return err
+	insertedCount := 0
+	for _, position := range positions {
+		filter := bson.M{"name": position.Name}
+		update := bson.M{
+			"$setOnInsert": bson.M{
+				"name":      position.Name,
+				"createdAt": time.Now(),
+				"updatedAt": time.Now(),
+			},
+		}
+
+		upsert := true
+		result, err := r.positions.UpdateOne(ctx, filter, update, &options.UpdateOptions{
+			Upsert: &upsert,
+		})
+		if err != nil {
+			return err
+		}
+
+		if result.UpsertedID != nil {
+			insertedCount++
+		}
 	}
 
-	log.Printf("Seeded %d positions", len(positions))
+	if insertedCount > 0 {
+		log.Printf("Seeded %d new positions", insertedCount)
+	} else {
+		log.Println("All positions already exist, no new positions added")
+	}
 	return nil
 }
 
 func (r *constantsRepository) seedLevels(ctx context.Context) error {
-	count, err := r.levels.CountDocuments(ctx, bson.M{})
-	if err != nil {
-		return err
-	}
-	if count > 0 {
-		log.Println("Levels already seeded, skipping...")
-		return nil
+	levels := []model.Level{
+		{Name: "Junior", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Middle", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Senior", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 	}
 
-	levels := []interface{}{
-		model.Level{Name: "Junior", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Level{Name: "Middle", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Level{Name: "Senior", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+	insertedCount := 0
+	for _, level := range levels {
+		filter := bson.M{"name": level.Name}
+		update := bson.M{
+			"$setOnInsert": bson.M{
+				"name":      level.Name,
+				"createdAt": time.Now(),
+				"updatedAt": time.Now(),
+			},
+		}
+
+		upsert := true
+		result, err := r.levels.UpdateOne(ctx, filter, update, &options.UpdateOptions{
+			Upsert: &upsert,
+		})
+		if err != nil {
+			return err
+		}
+
+		if result.UpsertedID != nil {
+			insertedCount++
+		}
 	}
 
-	_, err = r.levels.InsertMany(ctx, levels)
-	if err != nil {
-		return err
+	if insertedCount > 0 {
+		log.Printf("Seeded %d new levels", insertedCount)
+	} else {
+		log.Println("All levels already exist, no new levels added")
 	}
-
-	log.Printf("Seeded %d levels", len(levels))
 	return nil
 }
 
 func (r *constantsRepository) seedTechStacks(ctx context.Context) error {
-	count, err := r.techStacks.CountDocuments(ctx, bson.M{})
-	if err != nil {
-		return err
-	}
-	if count > 0 {
-		log.Println("Tech stacks already seeded, skipping...")
-		return nil
-	}
+	techStacks := []model.TechStack{
+		{Name: ".Net", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: ".Net Core", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: ".Net Framework", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Java", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Python", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Go", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "C#", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "PHP", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "NodeJS", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Spring Boot", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Django", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Laravel", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Rust", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Kotlin", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 
-	techStacks := []interface{}{
-		model.TechStack{Name: ".Net", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: ".Net Core", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: ".Net Framework", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Java", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Python", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Go", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "C#", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "PHP", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "NodeJS", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Spring Boot", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Django", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Laravel", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Rust", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Kotlin", Category: "Backend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "JavaScript", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "TypeScript", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "React", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Angular", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Vue", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Next.js", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "HTML", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "CSS", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "jQuery", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Svelte", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 
-		model.TechStack{Name: "JavaScript", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "TypeScript", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "React", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Angular", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Vue", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Next.js", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "HTML", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "CSS", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "jQuery", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Svelte", Category: "Frontend", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Swift", Category: "Mobile", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Kotlin", Category: "Mobile", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Flutter", Category: "Mobile", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "React Native", Category: "Mobile", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Xamarin", Category: "Mobile", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 
-		model.TechStack{Name: "Swift", Category: "Mobile", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Kotlin", Category: "Mobile", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Flutter", Category: "Mobile", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "React Native", Category: "Mobile", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Xamarin", Category: "Mobile", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "MySQL", Category: "Database", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "PostgreSQL", Category: "Database", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "MongoDB", Category: "Database", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Oracle", Category: "Database", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "MSSQL", Category: "Database", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "SQL", Category: "Database", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "PL/SQL", Category: "Database", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Elasticsearch", Category: "Database", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 
-		model.TechStack{Name: "MySQL", Category: "Database", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "PostgreSQL", Category: "Database", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "MongoDB", Category: "Database", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Oracle", Category: "Database", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "MSSQL", Category: "Database", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "SQL", Category: "Database", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "PL/SQL", Category: "Database", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Elasticsearch", Category: "Database", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "AWS", Category: "Cloud", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Azure", Category: "Cloud", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "GCP", Category: "Cloud", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Docker", Category: "DevOps", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Kubernetes", Category: "DevOps", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Jenkins", Category: "DevOps", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Terraform", Category: "DevOps", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Ansible", Category: "DevOps", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 
-		model.TechStack{Name: "AWS", Category: "Cloud", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Azure", Category: "Cloud", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "GCP", Category: "Cloud", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Docker", Category: "DevOps", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Kubernetes", Category: "DevOps", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Jenkins", Category: "DevOps", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Terraform", Category: "DevOps", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Ansible", Category: "DevOps", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "SAP", Category: "Enterprise", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "ABAP", Category: "Enterprise", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "SAP UI5", Category: "Enterprise", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Dynamics 365", Category: "Enterprise", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 
-		model.TechStack{Name: "SAP", Category: "Enterprise", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "ABAP", Category: "Enterprise", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "SAP UI5", Category: "Enterprise", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Dynamics 365", Category: "Enterprise", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Selenium", Category: "Testing", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Cypress", Category: "Testing", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "JMeter", Category: "Testing", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Postman", Category: "Testing", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 
-		model.TechStack{Name: "Selenium", Category: "Testing", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Cypress", Category: "Testing", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "JMeter", Category: "Testing", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Postman", Category: "Testing", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Power BI", Category: "Analytics", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Tableau", Category: "Analytics", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Apache Spark", Category: "BigData", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Kafka", Category: "BigData", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "R", Category: "Analytics", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "MATLAB", Category: "Analytics", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 
-		model.TechStack{Name: "Power BI", Category: "Analytics", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Tableau", Category: "Analytics", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Apache Spark", Category: "BigData", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Kafka", Category: "BigData", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "R", Category: "Analytics", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "MATLAB", Category: "Analytics", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-
-		model.TechStack{Name: "Linux", Category: "System", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Git", Category: "VersionControl", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "Redis", Category: "Cache", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.TechStack{Name: "RabbitMQ", Category: "MessageQueue", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Linux", Category: "System", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Git", Category: "VersionControl", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Redis", Category: "Cache", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "RabbitMQ", Category: "MessageQueue", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 	}
 
-	_, err = r.techStacks.InsertMany(ctx, techStacks)
-	if err != nil {
-		return err
+	insertedCount := 0
+	for _, techStack := range techStacks {
+		filter := bson.M{"name": techStack.Name}
+		update := bson.M{
+			"$setOnInsert": bson.M{
+				"name":      techStack.Name,
+				"category":  techStack.Category,
+				"createdAt": time.Now(),
+				"updatedAt": time.Now(),
+			},
+		}
+
+		upsert := true
+		result, err := r.techStacks.UpdateOne(ctx, filter, update, &options.UpdateOptions{
+			Upsert: &upsert,
+		})
+		if err != nil {
+			return err
+		}
+
+		if result.UpsertedID != nil {
+			insertedCount++
+		}
 	}
 
-	log.Printf("Seeded %d tech stacks", len(techStacks))
+	if insertedCount > 0 {
+		log.Printf("Seeded %d new tech stacks", insertedCount)
+	} else {
+		log.Println("All tech stacks already exist, no new tech stacks added")
+	}
 	return nil
 }
 
 func (r *constantsRepository) seedExperiences(ctx context.Context) error {
-	count, err := r.experiences.CountDocuments(ctx, bson.M{})
-	if err != nil {
-		return err
-	}
-	if count > 0 {
-		log.Println("Experiences already seeded, skipping...")
-		return nil
-	}
-
-	experiences := []interface{}{
-		model.Experience{Range: "0 - 1 Yıl", MinYears: 0, MaxYears: &[]int{1}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Experience{Range: "1 - 3 Yıl", MinYears: 1, MaxYears: &[]int{3}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Experience{Range: "3 - 5 Yıl", MinYears: 3, MaxYears: &[]int{5}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Experience{Range: "5 - 7 Yıl", MinYears: 5, MaxYears: &[]int{7}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Experience{Range: "7 - 10 Yıl", MinYears: 7, MaxYears: &[]int{10}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Experience{Range: "10 - 12 Yıl", MinYears: 10, MaxYears: &[]int{12}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Experience{Range: "12 - 14 Yıl", MinYears: 12, MaxYears: &[]int{14}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Experience{Range: "15 Yıl ve üzeri", MinYears: 15, MaxYears: nil, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+	experiences := []model.Experience{
+		{Range: "0 - 1 Yıl", MinYears: 0, MaxYears: &[]int{1}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Range: "1 - 3 Yıl", MinYears: 1, MaxYears: &[]int{3}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Range: "3 - 5 Yıl", MinYears: 3, MaxYears: &[]int{5}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Range: "5 - 7 Yıl", MinYears: 5, MaxYears: &[]int{7}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Range: "7 - 10 Yıl", MinYears: 7, MaxYears: &[]int{10}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Range: "10 - 12 Yıl", MinYears: 10, MaxYears: &[]int{12}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Range: "12 - 14 Yıl", MinYears: 12, MaxYears: &[]int{14}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Range: "15 Yıl ve üzeri", MinYears: 15, MaxYears: nil, CreatedAt: time.Now(), UpdatedAt: time.Now()},
 	}
 
-	_, err = r.experiences.InsertMany(ctx, experiences)
-	if err != nil {
-		return err
+	insertedCount := 0
+	for _, experience := range experiences {
+		filter := bson.M{"range": experience.Range}
+		update := bson.M{
+			"$setOnInsert": bson.M{
+				"range":     experience.Range,
+				"minYears":  experience.MinYears,
+				"maxYears":  experience.MaxYears,
+				"createdAt": time.Now(),
+				"updatedAt": time.Now(),
+			},
+		}
+
+		upsert := true
+		result, err := r.experiences.UpdateOne(ctx, filter, update, &options.UpdateOptions{
+			Upsert: &upsert,
+		})
+		if err != nil {
+			return err
+		}
+
+		if result.UpsertedID != nil {
+			insertedCount++
+		}
 	}
 
-	log.Printf("Seeded %d experiences", len(experiences))
+	if insertedCount > 0 {
+		log.Printf("Seeded %d new experiences", insertedCount)
+	} else {
+		log.Println("All experiences already exist, no new experiences added")
+	}
 	return nil
 }
 
 func (r *constantsRepository) seedCompanies(ctx context.Context) error {
-	count, err := r.companies.CountDocuments(ctx, bson.M{})
-	if err != nil {
-		return err
-	}
-	if count > 0 {
-		log.Println("Companies already seeded, skipping...")
-		return nil
-	}
-
-	companies := []interface{}{
-		model.Company{Name: "AI (Yapay Zeka)", Sector: "AI (Yapay Zeka)", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Akıllı Şehirler", Sector: "Akıllı Şehirler", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Arge", Sector: "Arge", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Banka", Sector: "Banka", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Beyaz Eşya", Sector: "Beyaz Eşya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Borsa", Sector: "Borsa", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Cloud", Sector: "Cloud", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Coğrafi Bilgi sistemleri", Sector: "Coğrafi Bilgi sistemleri", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Danışmanlık", Sector: "Danışmanlık", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Data", Sector: "Data", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Dernek & Vakıf", Sector: "Dernek & Vakıf", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Dijital / Reklam Ajansı", Sector: "Dijital / Reklam Ajansı", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Diğer", Sector: "Diğer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "E-Ticaret", Sector: "E-Ticaret", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "ERP", Sector: "ERP", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "ERP & CRM", Sector: "ERP & CRM", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Elektronik", Sector: "Elektronik", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Emlak", Sector: "Emlak", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Endüstri", Sector: "Endüstri", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Enerji", Sector: "Enerji", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Entegratör", Sector: "Entegratör", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Eğitim", Sector: "Eğitim", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Eğlence", Sector: "Eğlence", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Fabrika", Sector: "Fabrika", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Fintech", Sector: "Fintech", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Freelancer", Sector: "Freelancer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Gıda & Yemek", Sector: "Gıda & Yemek", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Havacılık", Sector: "Havacılık", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Hizmet", Sector: "Hizmet", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Holding", Sector: "Holding", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Hukuk", Sector: "Hukuk", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "IoT", Sector: "IoT", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Kamu", Sector: "Kamu", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Kripto", Sector: "Kripto", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Kurumsal", Sector: "Kurumsal", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Lojistik", Sector: "Lojistik", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Makina", Sector: "Makina", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Medya", Sector: "Medya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Mobil Uygulama", Sector: "Mobil Uygulama", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Mobilya", Sector: "Mobilya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Muhasebe", Sector: "Muhasebe", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Otomasyon", Sector: "Otomasyon", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Otomotiv", Sector: "Otomotiv", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Outsource", Sector: "Outsource", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Oyun", Sector: "Oyun", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Pazarlama", Sector: "Pazarlama", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Perakende", Sector: "Perakende", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Reklam", Sector: "Reklam", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "SaaS", Sector: "SaaS", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Saas", Sector: "Saas", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Sanayi", Sector: "Sanayi", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Savunma Sanayi", Sector: "Savunma Sanayi", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Sağlık", Sector: "Sağlık", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Siber Güvenlik", Sector: "Siber Güvenlik", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Sigorta", Sector: "Sigorta", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Startup", Sector: "Startup", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Tarım", Sector: "Tarım", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Tekstil & Giyim & Moda", Sector: "Tekstil & Giyim & Moda", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Telekomünikasyon", Sector: "Telekomünikasyon", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Turizm", Sector: "Turizm", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Yazılım Evi & Danışmanlık", Sector: "Yazılım Evi & Danışmanlık", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Üniversite", Sector: "Üniversite", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Üretim", Sector: "Üretim", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "İK & Danışmanlık", Sector: "İK & Danışmanlık", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "İnşaat", Sector: "İnşaat", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.Company{Name: "Şans Oyunları & Bahis", Sector: "Şans Oyunları & Bahis", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+	companies := []model.Company{
+		{Name: "AI (Yapay Zeka)", Sector: "AI (Yapay Zeka)", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Akıllı Şehirler", Sector: "Akıllı Şehirler", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Arge", Sector: "Arge", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Banka", Sector: "Banka", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Beyaz Eşya", Sector: "Beyaz Eşya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Borsa", Sector: "Borsa", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Cloud", Sector: "Cloud", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Coğrafi Bilgi sistemleri", Sector: "Coğrafi Bilgi sistemleri", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Danışmanlık", Sector: "Danışmanlık", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Data", Sector: "Data", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Dernek & Vakıf", Sector: "Dernek & Vakıf", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Dijital / Reklam Ajansı", Sector: "Dijital / Reklam Ajansı", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Diğer", Sector: "Diğer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "E-Ticaret", Sector: "E-Ticaret", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "ERP", Sector: "ERP", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "ERP & CRM", Sector: "ERP & CRM", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Elektronik", Sector: "Elektronik", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Emlak", Sector: "Emlak", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Endüstri", Sector: "Endüstri", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Enerji", Sector: "Enerji", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Entegratör", Sector: "Entegratör", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Eğitim", Sector: "Eğitim", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Eğlence", Sector: "Eğlence", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Fabrika", Sector: "Fabrika", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Fintech", Sector: "Fintech", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Freelancer", Sector: "Freelancer", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Gıda & Yemek", Sector: "Gıda & Yemek", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Havacılık", Sector: "Havacılık", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Hizmet", Sector: "Hizmet", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Holding", Sector: "Holding", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Hukuk", Sector: "Hukuk", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "IoT", Sector: "IoT", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Kamu", Sector: "Kamu", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Kripto", Sector: "Kripto", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Kurumsal", Sector: "Kurumsal", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Lojistik", Sector: "Lojistik", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Makina", Sector: "Makina", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Medya", Sector: "Medya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Mobil Uygulama", Sector: "Mobil Uygulama", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Mobilya", Sector: "Mobilya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Muhasebe", Sector: "Muhasebe", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Otomasyon", Sector: "Otomasyon", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Otomotiv", Sector: "Otomotiv", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Outsource", Sector: "Outsource", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Oyun", Sector: "Oyun", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Pazarlama", Sector: "Pazarlama", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Perakende", Sector: "Perakende", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Reklam", Sector: "Reklam", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "SaaS", Sector: "SaaS", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Saas", Sector: "Saas", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Sanayi", Sector: "Sanayi", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Savunma Sanayi", Sector: "Savunma Sanayi", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Sağlık", Sector: "Sağlık", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Siber Güvenlik", Sector: "Siber Güvenlik", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Sigorta", Sector: "Sigorta", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Startup", Sector: "Startup", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Tarım", Sector: "Tarım", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Tekstil & Giyim & Moda", Sector: "Tekstil & Giyim & Moda", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Telekomünikasyon", Sector: "Telekomünikasyon", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Turizm", Sector: "Turizm", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Yazılım Evi & Danışmanlık", Sector: "Yazılım Evi & Danışmanlık", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Üniversite", Sector: "Üniversite", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Üretim", Sector: "Üretim", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "İK & Danışmanlık", Sector: "İK & Danışmanlık", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "İnşaat", Sector: "İnşaat", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Şans Oyunları & Bahis", Sector: "Şans Oyunları & Bahis", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 	}
 
-	_, err = r.companies.InsertMany(ctx, companies)
-	if err != nil {
-		return err
-	}
+	insertedCount := 0
+	for _, company := range companies {
+		filter := bson.M{"name": company.Name}
+		update := bson.M{
+			"$setOnInsert": bson.M{
+				"name":      company.Name,
+				"sector":    company.Sector,
+				"createdAt": time.Now(),
+				"updatedAt": time.Now(),
+			},
+		}
 
-	log.Printf("Seeded %d companies", len(companies))
+		upsert := true
+		result, err := r.companies.UpdateOne(ctx, filter, update, &options.UpdateOptions{
+			Upsert: &upsert,
+		})
+		if err != nil {
+			return err
+		}
+
+		if result.UpsertedID != nil {
+			insertedCount++
+		}
+	}
+	log.Printf("Seeded %d companies", insertedCount)
 	return nil
 }
 
 func (r *constantsRepository) seedCompanySizes(ctx context.Context) error {
-	count, err := r.companySizes.CountDocuments(ctx, bson.M{})
-	if err != nil {
-		return err
-	}
-	if count > 0 {
-		log.Println("Company sizes already seeded, skipping...")
-		return nil
-	}
-
-	companySizes := []interface{}{
-		model.CompanySize{Range: "1 - 5 Kişi", MinSize: 1, MaxSize: &[]int{5}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.CompanySize{Range: "6 - 10 Kişi", MinSize: 6, MaxSize: &[]int{10}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.CompanySize{Range: "11 - 20 Kişi", MinSize: 11, MaxSize: &[]int{20}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.CompanySize{Range: "21 - 50 Kişi", MinSize: 21, MaxSize: &[]int{50}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.CompanySize{Range: "51 - 100 Kişi", MinSize: 51, MaxSize: &[]int{100}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.CompanySize{Range: "101 - 249 Kişi", MinSize: 101, MaxSize: &[]int{249}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.CompanySize{Range: "250+", MinSize: 250, MaxSize: nil, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+	companySizes := []model.CompanySize{
+		{Range: "1 - 5 Kişi", MinSize: 1, MaxSize: &[]int{5}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Range: "6 - 10 Kişi", MinSize: 6, MaxSize: &[]int{10}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Range: "11 - 20 Kişi", MinSize: 11, MaxSize: &[]int{20}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Range: "21 - 50 Kişi", MinSize: 21, MaxSize: &[]int{50}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Range: "51 - 100 Kişi", MinSize: 51, MaxSize: &[]int{100}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Range: "101 - 249 Kişi", MinSize: 101, MaxSize: &[]int{249}[0], CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Range: "250+", MinSize: 250, MaxSize: nil, CreatedAt: time.Now(), UpdatedAt: time.Now()},
 	}
 
-	_, err = r.companySizes.InsertMany(ctx, companySizes)
-	if err != nil {
-		return err
-	}
+	insertedCount := 0
+	for _, companySize := range companySizes {
+		filter := bson.M{"range": companySize.Range}
+		update := bson.M{
+			"$setOnInsert": bson.M{
+				"range":     companySize.Range,
+				"minSize":   companySize.MinSize,
+				"maxSize":   companySize.MaxSize,
+				"createdAt": time.Now(),
+				"updatedAt": time.Now(),
+			},
+		}
 
-	log.Printf("Seeded %d company sizes", len(companySizes))
+		upsert := true
+		result, err := r.companySizes.UpdateOne(ctx, filter, update, &options.UpdateOptions{
+			Upsert: &upsert,
+		})
+		if err != nil {
+			return err
+		}
+
+		if result.UpsertedID != nil {
+			insertedCount++
+		}
+	}
+	log.Printf("Seeded %d company sizes", insertedCount)
 	return nil
 }
 
 func (r *constantsRepository) seedWorkTypes(ctx context.Context) error {
-	count, err := r.workTypes.CountDocuments(ctx, bson.M{})
-	if err != nil {
-		return err
-	}
-	if count > 0 {
-		log.Println("Work types already seeded, skipping...")
-		return nil
+	workTypes := []model.WorkType{
+		{Name: "Ofis", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Remote", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Hibrit (Ofis + Remote)", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 	}
 
-	workTypes := []interface{}{
-		model.WorkType{Name: "Ofis", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.WorkType{Name: "Remote", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.WorkType{Name: "Hibrit (Ofis + Remote)", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-	}
+	insertedCount := 0
+	for _, workType := range workTypes {
+		filter := bson.M{"name": workType.Name}
+		update := bson.M{
+			"$setOnInsert": bson.M{
+				"name":      workType.Name,
+				"createdAt": time.Now(),
+				"updatedAt": time.Now(),
+			},
+		}
 
-	_, err = r.workTypes.InsertMany(ctx, workTypes)
-	if err != nil {
-		return err
-	}
+		upsert := true
+		result, err := r.workTypes.UpdateOne(ctx, filter, update, &options.UpdateOptions{
+			Upsert: &upsert,
+		})
+		if err != nil {
+			return err
+		}
 
-	log.Printf("Seeded %d work types", len(workTypes))
+		if result.UpsertedID != nil {
+			insertedCount++
+		}
+	}
+	log.Printf("Seeded %d work types", insertedCount)
 	return nil
 }
 
 func (r *constantsRepository) seedCities(ctx context.Context) error {
-	count, err := r.cities.CountDocuments(ctx, bson.M{})
-	if err != nil {
-		return err
-	}
-	if count > 0 {
-		log.Println("Cities already seeded, skipping...")
-		return nil
-	}
-
-	cities := []interface{}{
-		model.City{Name: "* ABD", Country: "ABD", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Almanya", Country: "Almanya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Arnavutluk", Country: "Arnavutluk", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Avrupa", Country: "Avrupa", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Avusturya", Country: "Avusturya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Azerbaycan", Country: "Azerbaycan", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Belçika", Country: "Belçika", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Birleşik Arap Emirlikleri", Country: "Birleşik Arap Emirlikleri", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Bosna Hersek", Country: "Bosna Hersek", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Dubai", Country: "Dubai", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Estonya", Country: "Estonya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Finlandiya", Country: "Finlandiya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Fransa", Country: "Fransa", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Güney Kore", Country: "Güney Kore", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Hollanda", Country: "Hollanda", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Hong Kong", Country: "Hong Kong", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Japonya", Country: "Japonya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* KKTC", Country: "KKTC", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Kanada", Country: "Kanada", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Karadağ", Country: "Karadağ", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Letonya", Country: "Letonya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Lüksemburg", Country: "Lüksemburg", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Malta", Country: "Malta", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Meksika", Country: "Meksika", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Polonya", Country: "Polonya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Portekiz", Country: "Portekiz", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Slovakya", Country: "Slovakya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Tayland", Country: "Tayland", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Türkiye", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* Çekya", Country: "Çekya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* İngiltere", Country: "İngiltere", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* İrlanda", Country: "İrlanda", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* İspanya", Country: "İspanya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* İsveç", Country: "İsveç", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* İsviçre", Country: "İsviçre", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "* İtalya", Country: "İtalya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-
-		model.City{Name: "Adana", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Adıyaman", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Afyonkarahisar", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Aksaray", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Amasya", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Ankara", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Antalya", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Ardahan", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Artvin", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Aydın", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Ağrı", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Balıkesir", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Batman", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Bilecik", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Bitlis", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Bolu", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Bursa", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Denizli", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Diyarbakır", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Düzce", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Edirne", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Elazığ", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Erzincan", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Erzurum", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Eskişehir", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Gaziantep", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Giresun", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Hakkari", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Hatay", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Isparta", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Iğdır", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Kahramanmaraş", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Karabük", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Karaman", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Kars", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Kastamonu", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Kayseri", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Kilis", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Kocaeli", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Konya", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Kütahya", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Kırklareli", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Kırşehir", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Malatya", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Manisa", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Mardin", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Mersin", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Muğla", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Muş", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Nevşehir", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Niğde", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Ordu", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Osmaniye", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Rize", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Sakarya", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Samsun", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Sinop", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Sivas", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Tekirdağ", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Tokat", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Trabzon", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Uşak", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Van", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Yalova", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Yozgat", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Zonguldak", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Çanakkale", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Çorum", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "İstanbul", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "İzmir", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
-		model.City{Name: "Şanlıurfa", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+	cities := []model.City{
+		{Name: "* ABD", Country: "ABD", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Almanya", Country: "Almanya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Arnavutluk", Country: "Arnavutluk", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Avrupa", Country: "Avrupa", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Avusturya", Country: "Avusturya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Azerbaycan", Country: "Azerbaycan", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Belçika", Country: "Belçika", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Birleşik Arap Emirlikleri", Country: "Birleşik Arap Emirlikleri", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Bosna Hersek", Country: "Bosna Hersek", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Dubai", Country: "Dubai", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Estonya", Country: "Estonya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Finlandiya", Country: "Finlandiya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Fransa", Country: "Fransa", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Güney Kore", Country: "Güney Kore", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Hollanda", Country: "Hollanda", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Hong Kong", Country: "Hong Kong", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Japonya", Country: "Japonya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* KKTC", Country: "KKTC", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Kanada", Country: "Kanada", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Karadağ", Country: "Karadağ", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Letonya", Country: "Letonya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Lüksemburg", Country: "Lüksemburg", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Malta", Country: "Malta", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Meksika", Country: "Meksika", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Polonya", Country: "Polonya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Portekiz", Country: "Portekiz", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Slovakya", Country: "Slovakya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Tayland", Country: "Tayland", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Türkiye", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* Çekya", Country: "Çekya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* İngiltere", Country: "İngiltere", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* İrlanda", Country: "İrlanda", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* İspanya", Country: "İspanya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* İsveç", Country: "İsveç", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* İsviçre", Country: "İsviçre", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "* İtalya", Country: "İtalya", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Adana", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Adıyaman", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Afyonkarahisar", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Aksaray", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Amasya", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Ankara", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Antalya", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Ardahan", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Artvin", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Aydın", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Ağrı", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Balıkesir", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Batman", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Bilecik", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Bitlis", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Bolu", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Bursa", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Denizli", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Diyarbakır", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Düzce", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Edirne", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Elazığ", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Erzincan", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Erzurum", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Eskişehir", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Gaziantep", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Giresun", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Hakkari", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Hatay", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Isparta", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Iğdır", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Kahramanmaraş", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Karabük", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Karaman", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Kars", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Kastamonu", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Kayseri", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Kilis", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Kocaeli", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Konya", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Kütahya", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Kırklareli", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Kırşehir", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Malatya", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Manisa", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Mardin", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Mersin", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Muğla", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Muş", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Nevşehir", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Niğde", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Ordu", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Osmaniye", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Rize", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Sakarya", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Samsun", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Sinop", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Sivas", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Tekirdağ", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Tokat", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Trabzon", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Uşak", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Van", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Yalova", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Yozgat", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Zonguldak", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Çanakkale", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Çorum", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "İstanbul", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "İzmir", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		{Name: "Şanlıurfa", Country: "Türkiye", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 	}
 
-	_, err = r.cities.InsertMany(ctx, cities)
-	if err != nil {
-		return err
-	}
+	insertedCount := 0
+	for _, city := range cities {
+		filter := bson.M{"name": city.Name, "country": city.Country}
+		update := bson.M{
+			"$setOnInsert": bson.M{
+				"name":      city.Name,
+				"country":   city.Country,
+				"createdAt": time.Now(),
+				"updatedAt": time.Now(),
+			},
+		}
 
-	log.Printf("Seeded %d cities", len(cities))
+		upsert := true
+		result, err := r.cities.UpdateOne(ctx, filter, update, &options.UpdateOptions{
+			Upsert: &upsert,
+		})
+		if err != nil {
+			return err
+		}
+
+		if result.UpsertedID != nil {
+			insertedCount++
+		}
+	}
+	log.Printf("Seeded %d cities", insertedCount)
 	return nil
 }
 
 func (r *constantsRepository) seedCurrencies(ctx context.Context) error {
-	count, err := r.currencies.CountDocuments(ctx, bson.M{})
-	if err != nil {
-		return err
-	}
-	if count > 0 {
-		log.Println("Currencies already seeded, skipping...")
-		return nil
-	}
-
-	currencies := []interface{}{
+	currencies := []model.Currency{
 		model.Currency{Name: "Türk Lirası", Code: "TRY", Symbol: "₺", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 		model.Currency{Name: "Dolar", Code: "USD", Symbol: "$", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 		model.Currency{Name: "Euro", Code: "EUR", Symbol: "€", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 		model.Currency{Name: "Sterlin", Code: "GBP", Symbol: "£", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 	}
 
-	_, err = r.currencies.InsertMany(ctx, currencies)
-	if err != nil {
-		return err
-	}
+	insertedCount := 0
+	for _, currency := range currencies {
+		filter := bson.M{"code": currency.Code}
+		update := bson.M{
+			"$setOnInsert": bson.M{
+				"name":      currency.Name,
+				"code":      currency.Code,
+				"symbol":    currency.Symbol,
+				"createdAt": time.Now(),
+				"updatedAt": time.Now(),
+			},
+		}
 
-	log.Printf("Seeded %d currencies", len(currencies))
+		upsert := true
+		result, err := r.currencies.UpdateOne(ctx, filter, update, &options.UpdateOptions{
+			Upsert: &upsert,
+		})
+		if err != nil {
+			return err
+		}
+
+		if result.UpsertedID != nil {
+			insertedCount++
+		}
+	}
+	log.Printf("Seeded %d currencies", insertedCount)
 	return nil
 }
 
