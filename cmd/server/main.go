@@ -42,6 +42,11 @@ func main() {
 		log.Fatalf("Failed to seed constants: %v", err)
 	}
 
+	indexRepo := repo.NewIndexRepo(db.Database)
+	if err := indexRepo.CreateAllIndexes(context.Background()); err != nil {
+		log.Fatalf("Failed to create indexes: %v", err)
+	}
+
 	userRepo := repo.NewUserRepository(db)
 
 	jwtManager, err := auth.NewJWTManager(cfg.JWTSecret, cfg.JWTExpiry, cfg.HMACSecret)
