@@ -9,6 +9,7 @@ import (
 
 	"github.com/eminsonlu/salystic/internal/model"
 	"github.com/eminsonlu/salystic/internal/repo"
+	"golang.org/x/sync/errgroup"
 )
 
 type AnalyticsService struct {
@@ -28,59 +29,90 @@ func (s *AnalyticsService) GetGeneralAnalytics(ctx context.Context, level, posit
 		Currency: currency,
 	}
 
-	totalEntries, err := s.analyticsRepo.GetTotalEntries(ctx, filter)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get total entries: %w", err)
-	}
+	g, ctx := errgroup.WithContext(ctx)
 
-	averageSalary, err := s.analyticsRepo.GetOverallAverageSalary(ctx, filter)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get overall average salary: %w", err)
-	}
+	var (
+		totalEntries        int64
+		averageSalary       float64
+		salaryByPosition    []model.SalaryByCategory
+		salaryByLevel       []model.SalaryByCategory
+		salaryByTech        []model.SalaryByTech
+		salaryByExperience  []model.SalaryByCategory
+		salaryByCompany     []model.SalaryByCategory
+		salaryByCity        []model.SalaryByCategory
+		salaryByCompanySize []model.SalaryByCategory
+		salaryByWorkType    []model.SalaryByCategory
+		salaryByCurrency    []model.SalaryByCategory
+	)
 
-	salaryByPosition, err := s.analyticsRepo.GetAverageSalaryByPosition(ctx, filter)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get salary by position: %w", err)
-	}
+	g.Go(func() error {
+		var err error
+		totalEntries, err = s.analyticsRepo.GetTotalEntries(ctx, filter)
+		return err
+	})
 
-	salaryByLevel, err := s.analyticsRepo.GetAverageSalaryByLevel(ctx, filter)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get salary by level: %w", err)
-	}
+	g.Go(func() error {
+		var err error
+		averageSalary, err = s.analyticsRepo.GetOverallAverageSalary(ctx, filter)
+		return err
+	})
 
-	salaryByTech, err := s.analyticsRepo.GetAverageSalaryByTech(ctx, filter)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get salary by tech: %w", err)
-	}
+	g.Go(func() error {
+		var err error
+		salaryByPosition, err = s.analyticsRepo.GetAverageSalaryByPosition(ctx, filter)
+		return err
+	})
 
-	salaryByExperience, err := s.analyticsRepo.GetAverageSalaryByExperience(ctx, filter)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get salary by experience: %w", err)
-	}
+	g.Go(func() error {
+		var err error
+		salaryByLevel, err = s.analyticsRepo.GetAverageSalaryByLevel(ctx, filter)
+		return err
+	})
 
-	salaryByCompany, err := s.analyticsRepo.GetAverageSalaryByCompany(ctx, filter)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get salary by company: %w", err)
-	}
+	g.Go(func() error {
+		var err error
+		salaryByTech, err = s.analyticsRepo.GetAverageSalaryByTech(ctx, filter)
+		return err
+	})
 
-	salaryByCity, err := s.analyticsRepo.GetAverageSalaryByCity(ctx, filter)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get salary by city: %w", err)
-	}
+	g.Go(func() error {
+		var err error
+		salaryByExperience, err = s.analyticsRepo.GetAverageSalaryByExperience(ctx, filter)
+		return err
+	})
 
-	salaryByCompanySize, err := s.analyticsRepo.GetAverageSalaryByCompanySize(ctx, filter)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get salary by company size: %w", err)
-	}
+	g.Go(func() error {
+		var err error
+		salaryByCompany, err = s.analyticsRepo.GetAverageSalaryByCompany(ctx, filter)
+		return err
+	})
 
-	salaryByWorkType, err := s.analyticsRepo.GetAverageSalaryByWorkType(ctx, filter)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get salary by work type: %w", err)
-	}
+	g.Go(func() error {
+		var err error
+		salaryByCity, err = s.analyticsRepo.GetAverageSalaryByCity(ctx, filter)
+		return err
+	})
 
-	salaryByCurrency, err := s.analyticsRepo.GetAverageSalaryByCurrency(ctx, filter)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get salary by currency: %w", err)
+	g.Go(func() error {
+		var err error
+		salaryByCompanySize, err = s.analyticsRepo.GetAverageSalaryByCompanySize(ctx, filter)
+		return err
+	})
+
+	g.Go(func() error {
+		var err error
+		salaryByWorkType, err = s.analyticsRepo.GetAverageSalaryByWorkType(ctx, filter)
+		return err
+	})
+
+	g.Go(func() error {
+		var err error
+		salaryByCurrency, err = s.analyticsRepo.GetAverageSalaryByCurrency(ctx, filter)
+		return err
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, fmt.Errorf("failed to fetch analytics data: %w", err)
 	}
 
 	averageByPositionMap := make(map[string]float64)
@@ -169,23 +201,23 @@ func (s *AnalyticsService) GetGeneralAnalytics(ctx context.Context, level, posit
 	salaryRanges := s.buildSalaryRanges(salaryByPosition, currency)
 
 	return &model.Analytics{
-		TotalEntries:              totalEntries,
-		AverageSalary:             averageSalary,
-		AverageSalaryByPosition:   averageByPositionMap,
-		MinSalaryByPosition:       minByPositionMap,
-		MaxSalaryByPosition:       maxByPositionMap,
-		AverageSalaryByLevel:      averageByLevelMap,
-		MinSalaryByLevel:          minByLevelMap,
-		MaxSalaryByLevel:          maxByLevelMap,
-		AverageSalaryByTech:       averageByTechMap,
-		MinSalaryByTech:           minByTechMap,
-		MaxSalaryByTech:           maxByTechMap,
-		AverageSalaryByExperience: averageByExperienceMap,
-		MinSalaryByExperience:     minByExperienceMap,
-		MaxSalaryByExperience:     maxByExperienceMap,
-		AverageSalaryByCompany:    averageByCompanyMap,
-		MinSalaryByCompany:        minByCompanyMap,
-		MaxSalaryByCompany:        maxByCompanyMap,
+		TotalEntries:               totalEntries,
+		AverageSalary:              averageSalary,
+		AverageSalaryByPosition:    averageByPositionMap,
+		MinSalaryByPosition:        minByPositionMap,
+		MaxSalaryByPosition:        maxByPositionMap,
+		AverageSalaryByLevel:       averageByLevelMap,
+		MinSalaryByLevel:           minByLevelMap,
+		MaxSalaryByLevel:           maxByLevelMap,
+		AverageSalaryByTech:        averageByTechMap,
+		MinSalaryByTech:            minByTechMap,
+		MaxSalaryByTech:            maxByTechMap,
+		AverageSalaryByExperience:  averageByExperienceMap,
+		MinSalaryByExperience:      minByExperienceMap,
+		MaxSalaryByExperience:      maxByExperienceMap,
+		AverageSalaryByCompany:     averageByCompanyMap,
+		MinSalaryByCompany:         minByCompanyMap,
+		MaxSalaryByCompany:         maxByCompanyMap,
 		AverageSalaryByCity:        averageByCityMap,
 		MinSalaryByCity:            minByCityMap,
 		MaxSalaryByCity:            maxByCityMap,
