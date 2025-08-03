@@ -346,6 +346,202 @@ func (r *AnalyticsRepo) GetAvailableLevels(ctx context.Context) ([]string, error
 	return levels, nil
 }
 
+type CombinedAnalyticsResult struct {
+	TotalCount []struct {
+		Total int64 `bson:"total"`
+	} `bson:"totalCount"`
+	OverallAverage []struct {
+		Average float64 `bson:"average"`
+	} `bson:"overallAverage"`
+	ByPosition    []model.SalaryByCategory `bson:"byPosition"`
+	ByLevel       []model.SalaryByCategory `bson:"byLevel"`
+	ByExperience  []model.SalaryByCategory `bson:"byExperience"`
+	ByCompany     []model.SalaryByCategory `bson:"byCompany"`
+	ByCity        []model.SalaryByCategory `bson:"byCity"`
+	ByCompanySize []model.SalaryByCategory `bson:"byCompanySize"`
+	ByWorkType    []model.SalaryByCategory `bson:"byWorkType"`
+	ByCurrency    []model.SalaryByCategory `bson:"byCurrency"`
+}
+
+func (r *AnalyticsRepo) GetCombinedAnalytics(ctx context.Context, filter *AnalyticsFilter) (*CombinedAnalyticsResult, error) {
+	collection := r.db.Collection("salary_entries")
+
+	baseMatch := bson.M{}
+	if filter != nil {
+		baseMatch = r.buildFilterQuery(filter)
+	}
+
+	pipeline := []bson.M{
+		{"$match": baseMatch},
+		{
+			"$facet": bson.M{
+				"totalCount": []bson.M{
+					{"$count": "total"},
+				},
+				"overallAverage": []bson.M{
+					{
+						"$group": bson.M{
+							"_id":     nil,
+							"average": bson.M{"$avg": "$salary_min"},
+						},
+					},
+				},
+				"byPosition": []bson.M{
+					{
+						"$match": bson.M{
+							"position": bson.M{"$ne": "", "$exists": true},
+						},
+					},
+					{
+						"$group": bson.M{
+							"_id":     "$position",
+							"average": bson.M{"$avg": "$salary_min"},
+							"min":     bson.M{"$min": "$salary_min"},
+							"max":     bson.M{"$max": "$salary_min"},
+							"count":   bson.M{"$sum": 1},
+						},
+					},
+					{"$sort": bson.M{"_id": 1}},
+				},
+				"byLevel": []bson.M{
+					{
+						"$match": bson.M{
+							"level": bson.M{"$ne": "", "$exists": true},
+						},
+					},
+					{
+						"$group": bson.M{
+							"_id":     "$level",
+							"average": bson.M{"$avg": "$salary_min"},
+							"min":     bson.M{"$min": "$salary_min"},
+							"max":     bson.M{"$max": "$salary_min"},
+							"count":   bson.M{"$sum": 1},
+						},
+					},
+					{"$sort": bson.M{"_id": 1}},
+				},
+				"byExperience": []bson.M{
+					{
+						"$match": bson.M{
+							"experience": bson.M{"$ne": "", "$exists": true},
+						},
+					},
+					{
+						"$group": bson.M{
+							"_id":     "$experience",
+							"average": bson.M{"$avg": "$salary_min"},
+							"min":     bson.M{"$min": "$salary_min"},
+							"max":     bson.M{"$max": "$salary_min"},
+							"count":   bson.M{"$sum": 1},
+						},
+					},
+					{"$sort": bson.M{"_id": 1}},
+				},
+				"byCompany": []bson.M{
+					{
+						"$match": bson.M{
+							"company": bson.M{"$ne": "", "$exists": true},
+						},
+					},
+					{
+						"$group": bson.M{
+							"_id":     "$company",
+							"average": bson.M{"$avg": "$salary_min"},
+							"min":     bson.M{"$min": "$salary_min"},
+							"max":     bson.M{"$max": "$salary_min"},
+							"count":   bson.M{"$sum": 1},
+						},
+					},
+					{"$sort": bson.M{"_id": 1}},
+				},
+				"byCity": []bson.M{
+					{
+						"$match": bson.M{
+							"city": bson.M{"$ne": "", "$exists": true},
+						},
+					},
+					{
+						"$group": bson.M{
+							"_id":     "$city",
+							"average": bson.M{"$avg": "$salary_min"},
+							"min":     bson.M{"$min": "$salary_min"},
+							"max":     bson.M{"$max": "$salary_min"},
+							"count":   bson.M{"$sum": 1},
+						},
+					},
+					{"$sort": bson.M{"_id": 1}},
+				},
+				"byCompanySize": []bson.M{
+					{
+						"$match": bson.M{
+							"company_size": bson.M{"$ne": "", "$exists": true},
+						},
+					},
+					{
+						"$group": bson.M{
+							"_id":     "$company_size",
+							"average": bson.M{"$avg": "$salary_min"},
+							"min":     bson.M{"$min": "$salary_min"},
+							"max":     bson.M{"$max": "$salary_min"},
+							"count":   bson.M{"$sum": 1},
+						},
+					},
+					{"$sort": bson.M{"_id": 1}},
+				},
+				"byWorkType": []bson.M{
+					{
+						"$match": bson.M{
+							"work_type": bson.M{"$ne": "", "$exists": true},
+						},
+					},
+					{
+						"$group": bson.M{
+							"_id":     "$work_type",
+							"average": bson.M{"$avg": "$salary_min"},
+							"min":     bson.M{"$min": "$salary_min"},
+							"max":     bson.M{"$max": "$salary_min"},
+							"count":   bson.M{"$sum": 1},
+						},
+					},
+					{"$sort": bson.M{"_id": 1}},
+				},
+				"byCurrency": []bson.M{
+					{
+						"$match": bson.M{
+							"currency": bson.M{"$ne": "", "$exists": true},
+						},
+					},
+					{
+						"$group": bson.M{
+							"_id":     "$currency",
+							"average": bson.M{"$avg": "$salary_min"},
+							"min":     bson.M{"$min": "$salary_min"},
+							"max":     bson.M{"$max": "$salary_min"},
+							"count":   bson.M{"$sum": 1},
+						},
+					},
+					{"$sort": bson.M{"_id": 1}},
+				},
+			},
+		},
+	}
+
+	cursor, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute combined analytics query: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var result CombinedAnalyticsResult
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return nil, fmt.Errorf("failed to decode combined analytics result: %w", err)
+		}
+	}
+
+	return &result, nil
+}
+
 func (r *AnalyticsRepo) buildFilterQuery(filter *AnalyticsFilter) bson.M {
 	query := bson.M{}
 

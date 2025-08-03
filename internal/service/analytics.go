@@ -32,40 +32,13 @@ func (s *AnalyticsService) GetGeneralAnalytics(ctx context.Context, level, posit
 	g, ctx := errgroup.WithContext(ctx)
 
 	var (
-		totalEntries        int64
-		averageSalary       float64
-		salaryByPosition    []model.SalaryByCategory
-		salaryByLevel       []model.SalaryByCategory
-		salaryByTech        []model.SalaryByTech
-		salaryByExperience  []model.SalaryByCategory
-		salaryByCompany     []model.SalaryByCategory
-		salaryByCity        []model.SalaryByCategory
-		salaryByCompanySize []model.SalaryByCategory
-		salaryByWorkType    []model.SalaryByCategory
-		salaryByCurrency    []model.SalaryByCategory
+		combinedResult *repo.CombinedAnalyticsResult
+		salaryByTech   []model.SalaryByTech
 	)
 
 	g.Go(func() error {
 		var err error
-		totalEntries, err = s.analyticsRepo.GetTotalEntries(ctx, filter)
-		return err
-	})
-
-	g.Go(func() error {
-		var err error
-		averageSalary, err = s.analyticsRepo.GetOverallAverageSalary(ctx, filter)
-		return err
-	})
-
-	g.Go(func() error {
-		var err error
-		salaryByPosition, err = s.analyticsRepo.GetAverageSalaryByPosition(ctx, filter)
-		return err
-	})
-
-	g.Go(func() error {
-		var err error
-		salaryByLevel, err = s.analyticsRepo.GetAverageSalaryByLevel(ctx, filter)
+		combinedResult, err = s.analyticsRepo.GetCombinedAnalytics(ctx, filter)
 		return err
 	})
 
@@ -75,45 +48,28 @@ func (s *AnalyticsService) GetGeneralAnalytics(ctx context.Context, level, posit
 		return err
 	})
 
-	g.Go(func() error {
-		var err error
-		salaryByExperience, err = s.analyticsRepo.GetAverageSalaryByExperience(ctx, filter)
-		return err
-	})
-
-	g.Go(func() error {
-		var err error
-		salaryByCompany, err = s.analyticsRepo.GetAverageSalaryByCompany(ctx, filter)
-		return err
-	})
-
-	g.Go(func() error {
-		var err error
-		salaryByCity, err = s.analyticsRepo.GetAverageSalaryByCity(ctx, filter)
-		return err
-	})
-
-	g.Go(func() error {
-		var err error
-		salaryByCompanySize, err = s.analyticsRepo.GetAverageSalaryByCompanySize(ctx, filter)
-		return err
-	})
-
-	g.Go(func() error {
-		var err error
-		salaryByWorkType, err = s.analyticsRepo.GetAverageSalaryByWorkType(ctx, filter)
-		return err
-	})
-
-	g.Go(func() error {
-		var err error
-		salaryByCurrency, err = s.analyticsRepo.GetAverageSalaryByCurrency(ctx, filter)
-		return err
-	})
-
 	if err := g.Wait(); err != nil {
 		return nil, fmt.Errorf("failed to fetch analytics data: %w", err)
 	}
+
+	var totalEntries int64
+	if len(combinedResult.TotalCount) > 0 {
+		totalEntries = combinedResult.TotalCount[0].Total
+	}
+
+	var averageSalary float64
+	if len(combinedResult.OverallAverage) > 0 {
+		averageSalary = combinedResult.OverallAverage[0].Average
+	}
+
+	salaryByPosition := combinedResult.ByPosition
+	salaryByLevel := combinedResult.ByLevel
+	salaryByExperience := combinedResult.ByExperience
+	salaryByCompany := combinedResult.ByCompany
+	salaryByCity := combinedResult.ByCity
+	salaryByCompanySize := combinedResult.ByCompanySize
+	salaryByWorkType := combinedResult.ByWorkType
+	salaryByCurrency := combinedResult.ByCurrency
 
 	averageByPositionMap := make(map[string]float64)
 	minByPositionMap := make(map[string]float64)
