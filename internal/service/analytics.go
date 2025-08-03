@@ -17,6 +17,7 @@ import (
 type AnalyticsService struct {
 	analyticsRepo *repo.AnalyticsRepo
 	cache         *ttlcache.Cache[string, *model.Analytics]
+	cacheCareer   *ttlcache.Cache[string, *model.CareerAnalytics]
 }
 
 func NewAnalyticsService(analyticsRepo *repo.AnalyticsRepo) *AnalyticsService {
@@ -30,9 +31,16 @@ func NewAnalyticsServiceWithTTL(analyticsRepo *repo.AnalyticsRepo, cacheTTL time
 	)
 	go cache.Start()
 
+	cacheCareer := ttlcache.New(
+		ttlcache.WithTTL[string, *model.CareerAnalytics](cacheTTL),
+		ttlcache.WithCapacity[string, *model.CareerAnalytics](100),
+	)
+	go cacheCareer.Start()
+
 	return &AnalyticsService{
 		analyticsRepo: analyticsRepo,
 		cache:         cache,
+		cacheCareer:   cacheCareer,
 	}
 }
 
@@ -223,6 +231,12 @@ func (s *AnalyticsService) GetGeneralAnalytics(ctx context.Context, level, posit
 }
 
 func (s *AnalyticsService) GetCareerAnalytics(ctx context.Context) (*model.CareerAnalytics, error) {
+	cacheKey := "career_analytics"
+
+	if cached := s.cacheCareer.Get(cacheKey); cached != nil {
+		return cached.Value(), nil
+	}
+
 	jobChangeData, err := s.analyticsRepo.GetJobChangeData(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get job change data: %w", err)
@@ -235,6 +249,11 @@ func (s *AnalyticsService) GetCareerAnalytics(ctx context.Context) (*model.Caree
 
 	jobChangeAnalytics := s.calculateJobChangeAnalytics(jobChangeData)
 	raiseAnalytics := s.calculateRaiseAnalytics(raiseData)
+
+	s.cacheCareer.Set(cacheKey, &model.CareerAnalytics{
+		JobChanges: jobChangeAnalytics,
+		Raises:     raiseAnalytics,
+	}, ttlcache.DefaultTTL)
 
 	return &model.CareerAnalytics{
 		JobChanges: jobChangeAnalytics,
