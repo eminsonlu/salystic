@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"crypto/md5"
 	"fmt"
 	"math"
 	"sort"
@@ -9,20 +10,45 @@ import (
 
 	"github.com/eminsonlu/salystic/internal/model"
 	"github.com/eminsonlu/salystic/internal/repo"
+	"github.com/jellydator/ttlcache/v3"
 	"golang.org/x/sync/errgroup"
 )
 
 type AnalyticsService struct {
 	analyticsRepo *repo.AnalyticsRepo
+	cache         *ttlcache.Cache[string, *model.Analytics]
 }
 
 func NewAnalyticsService(analyticsRepo *repo.AnalyticsRepo) *AnalyticsService {
+	return NewAnalyticsServiceWithTTL(analyticsRepo, 10*time.Minute)
+}
+
+func NewAnalyticsServiceWithTTL(analyticsRepo *repo.AnalyticsRepo, cacheTTL time.Duration) *AnalyticsService {
+	cache := ttlcache.New(
+		ttlcache.WithTTL[string, *model.Analytics](cacheTTL),
+		ttlcache.WithCapacity[string, *model.Analytics](100),
+	)
+	go cache.Start()
+
 	return &AnalyticsService{
 		analyticsRepo: analyticsRepo,
+		cache:         cache,
 	}
 }
 
+func (s *AnalyticsService) generateCacheKey(level, position, currency string) string {
+	key := fmt.Sprintf("analytics:%s:%s:%s", level, position, currency)
+	hash := md5.Sum([]byte(key))
+	return fmt.Sprintf("%x", hash)
+}
+
 func (s *AnalyticsService) GetGeneralAnalytics(ctx context.Context, level, position, currency string) (*model.Analytics, error) {
+	cacheKey := s.generateCacheKey(level, position, currency)
+
+	if cached := s.cache.Get(cacheKey); cached != nil {
+		return cached.Value(), nil
+	}
+
 	filter := &repo.AnalyticsFilter{
 		Level:    level,
 		Position: position,
@@ -156,7 +182,7 @@ func (s *AnalyticsService) GetGeneralAnalytics(ctx context.Context, level, posit
 	topPayingTechs := s.buildTopPayingTechChart(salaryByTech, 10)
 	salaryRanges := s.buildSalaryRanges(salaryByPosition, currency)
 
-	return &model.Analytics{
+	analytics := &model.Analytics{
 		TotalEntries:               totalEntries,
 		AverageSalary:              averageSalary,
 		AverageSalaryByPosition:    averageByPositionMap,
@@ -190,7 +216,10 @@ func (s *AnalyticsService) GetGeneralAnalytics(ctx context.Context, level, posit
 		TopPayingTechs:             topPayingTechs,
 		SalaryRanges:               salaryRanges,
 		LastUpdated:                time.Now(),
-	}, nil
+	}
+
+	s.cache.Set(cacheKey, analytics, ttlcache.DefaultTTL)
+	return analytics, nil
 }
 
 func (s *AnalyticsService) GetCareerAnalytics(ctx context.Context) (*model.CareerAnalytics, error) {
